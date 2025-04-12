@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Clone</title>
+    <!-- styles skipped for brevity -->
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>Welcome to DeepSeek</h1>
+                <p>Login to continue to your AI assistant</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+            <div class="signup-link">
+                Don't have an account? <a href="#" id="signupLink">Sign up</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Page -->
+    <div class="chat-page" id="chatPage" style="display:none;">
+        <div class="header">
+            <button class="menu-btn" id="menuBtn">☰</button>
+            <div class="logo">DeepSeek</div>
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">U</div>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <h2>DeepSeek-V3</h2>
+                    <p>How can I help you today?</p>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="userInput" placeholder="Message DeepSeek...">
+                <button class="send-btn" id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const loginPage = document.getElementById('loginPage');
+        const chatPage = document.getElementById('chatPage');
+        const loginForm = document.getElementById('loginForm');
+        const userAvatar = document.getElementById('userAvatar');
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                loginPage.style.display = 'none';
+                chatPage.style.display = 'flex';
+                userAvatar.textContent = data.name.charAt(0).toUpperCase();
+            } else {
+                alert(data.message);
+            }
+        });
+
+        sendBtn.addEventListener('click', async () => {
+            const msg = userInput.value.trim();
+            if (!msg) return;
+
+            addMessage(msg, 'user');
+            userInput.value = '';
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            const data = await res.json();
+            addMessage(data.reply, 'bot');
+        });
+
+        function addMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.classList.add('message');
+            msg.classList.add(sender + '-message');
+            msg.textContent = text;
+            chatMessages.appendChild(msg);
+        }
+    </script>
+</body>
+</html>
